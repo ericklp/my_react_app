@@ -1,23 +1,24 @@
-import logo from './logo.svg';
+import React, { Fragment } from 'react';
+import avatarImg from './avatar.jpg';
 import './App.css';
+import Avatar from '@mui/material/Avatar';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload ERICK.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <header className="App-header">
+      <Fragment>
+          <Box className="App-header" flexDirection="column" display="flex" >
+            <Avatar alt="Erick Lopes" src={avatarImg} />
+            <p> Erick Lopes </p>
+            <Button variant="contained">
+              Começar
+          </Button>
+          </Box>
+      </Fragment>
+    </header>
     </div>
   );
 }
