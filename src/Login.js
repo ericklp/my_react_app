@@ -4,36 +4,14 @@ import './App.css';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 
-import { getAuth } from "firebase/auth";
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/auth';
-import 'firebase/compat/firestore';
-
-import withFirebaseAuth from 'react-with-firebase-auth'
 import { useAuthState } from "react-firebase-hooks/auth";
-import { signOut } from "firebase/auth";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCoxYKn-P7YgEUPdcoaQzvK4C-pHIdVd2U",
-  authDomain: "apt-footing-95820.firebaseapp.com",
-  databaseURL: "https://apt-footing-95820-default-rtdb.firebaseio.com",
-  projectId: "apt-footing-95820",
-  storageBucket: "apt-footing-95820.appspot.com",
-  messagingSenderId: "1049264655938",
-  appId: "1:1049264655938:web:125d52737184a098ede7db",
-  measurementId: "G-MVZRCLSRWD"
-};
-
-const firebaseApp = firebase.initializeApp(firebaseConfig);
-const firebaseAppAuth = getAuth(firebaseApp);
-const auth = firebase.auth();
-const provider = new firebase.auth.GoogleAuthProvider();
-const signInWithGoogle = () => auth.signInWithPopup(provider);
-
-const createComponentWithAuth = withFirebaseAuth({
-  provider,
-  firebaseAppAuth,
-});
+import { 
+    signInWithGoogle, 
+    createComponentWithAuth, 
+    auth,
+    logout }
+from './firebase';
 
 function Login() {
   const [user, loading] = useAuthState(auth);
@@ -47,10 +25,6 @@ function Login() {
         navigate("/dashboard");
     } 
   }, [user, loading]);
-
-  const logout = () => {
-    signOut(auth);
-  };
 
   return (
     <div className="App">
