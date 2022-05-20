@@ -1,7 +1,7 @@
 import "./App.css";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Login from "./Login";
-import Dashboard from "./Dashboard";
+import PlanningPoker from "./PlanningPoker";
 
 function App() {
   return (
@@ -9,7 +9,7 @@ function App() {
       <Router>
         <Routes>
           <Route exact path="/" element={<Login />} />
-          <Route exact path="/dashboard" element={<Dashboard />} />
+          <Route exact path="/index" element={<PlanningPoker />} />
         </Routes>
       </Router>
     </div>

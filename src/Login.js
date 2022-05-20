@@ -22,7 +22,7 @@ function Login() {
         return;
     }
     if (user) {
-        navigate("/dashboard");
+        navigate("/index");
     } 
   }, [user, loading]);
 

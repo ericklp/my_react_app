@@ -1,11 +1,13 @@
 import React, { useEffect, Fragment } from 'react';
 import { useNavigate } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
-
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
 
 import { auth, logout } from './firebase';
+import firebase from 'firebase/compat/app';
+
+const db = firebase.firestore();
 
 function Dashboard() {
   const [user, loading] = useAuthState(auth);
