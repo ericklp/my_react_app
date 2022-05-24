@@ -13,10 +13,7 @@ import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import BrokenImageIcon from '@mui/icons-material/BrokenImage';
 
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-
+import Stack from '@mui/material/Stack';
 
 import { auth, logout } from './firebase';
 import { useNavigate } from "react-router-dom";
@@ -25,14 +22,32 @@ import { useAuthState } from "react-firebase-hooks/auth";
 const pages = [''];
 const settings = ['Account', 'Logout'];
 
-const bull = (
-    <Box
-      component="span"
-      sx={{ display: 'inline-block', mx: '2px', transform: 'scale(0.8)' }}
-    >
-      •
-    </Box>
-);
+
+function addCardButton(value) {
+    console.log(value);
+    return (
+        <Button variant="outlined" 
+            style={{maxWidth: '130px',
+                    maxHeight: '130px',
+                    minWidth: '130px',
+                    minHeight: '130px'}}
+            onClick={() => {
+                alert('clicked');
+            }}
+        >
+            {value}
+        </Button>
+    );
+}
+
+const CardButton = () => {
+    const fibonacci = [1, 2, 3, 5, 8, 13, 21];
+    let buttonObject = [];
+    for (let i = 0; i < fibonacci.length; i++) {
+        buttonObject.push(addCardButton(fibonacci[i]));
+    }
+    return buttonObject;
+};
 
 const ResponsiveAppBar = () => {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
@@ -189,27 +204,11 @@ const ResponsiveAppBar = () => {
         </Container>
         </AppBar>
 
-        <Card sx={{ minWidth: 275 }}>
-        <CardContent>
-        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-            Word of the Day
-        </Typography>
-        <Typography variant="h5" component="div">
-            be{bull}nev{bull}o{bull}lent
-        </Typography>
-        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-            adjective
-        </Typography>
-        <Typography variant="body2">
-            well meaning and kindly.
-            <br />
-            {'"a benevolent smile"'}
-        </Typography>
-        </CardContent>
-        <CardActions>
-        <Button size="small">Learn More</Button>
-        </CardActions>
-        </Card>
+        <div className="app">
+            <Stack direction="row" spacing={2}>
+                <CardButton />
+            </Stack>
+        </div>
     </Fragment>
 
   );
