@@ -12,6 +12,8 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import BrokenImageIcon from '@mui/icons-material/BrokenImage';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import Stack from '@mui/material/Stack';
 
@@ -22,32 +24,45 @@ import { useAuthState } from "react-firebase-hooks/auth";
 const pages = [''];
 const settings = ['Account', 'Logout'];
 
-
-function addCardButton(value) {
-    console.log(value);
-    return (
-        <Button variant="outlined" 
-            style={{maxWidth: '130px',
-                    maxHeight: '130px',
-                    minWidth: '130px',
-                    minHeight: '130px'}}
-            onClick={() => {
-                alert('clicked');
-            }}
-        >
-            {value}
-        </Button>
-    );
-}
-
-const CardButton = () => {
+const getValuesForCard = () => {
     const fibonacci = [1, 2, 3, 5, 8, 13, 21];
     let buttonObject = [];
     for (let i = 0; i < fibonacci.length; i++) {
-        buttonObject.push(addCardButton(fibonacci[i]));
+        buttonObject.push({
+            value: fibonacci[i]
+        })
     }
     return buttonObject;
 };
+
+const ToogleGroupObject = () => {
+    const [selectedCard, setSelectedCard] = React.useState(1);
+
+    const handleSelectedCard = (event, newCard) => {
+      console.log(`ERICK ${newCard}`);
+      setSelectedCard(newCard);
+    };
+
+    return (    
+        <ToggleButtonGroup
+            exclusive
+            value={selectedCard}
+            onChange={handleSelectedCard}
+        >
+            {getValuesForCard().map((card, index) => (
+                <ToggleButton 
+                    variant="outlined" 
+                    style={{maxWidth: '130px',
+                            maxHeight: '130px',
+                            minWidth: '130px',
+                            minHeight: '130px'}}
+                    value={card.value}
+                >
+                    {card.value}
+                </ToggleButton>))}
+        </ToggleButtonGroup>
+    )
+}
 
 const ResponsiveAppBar = () => {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
@@ -205,9 +220,7 @@ const ResponsiveAppBar = () => {
         </AppBar>
 
         <div className="app">
-            <Stack direction="row" spacing={2}>
-                <CardButton />
-            </Stack>
+            <ToogleGroupObject />
         </div>
     </Fragment>
 
