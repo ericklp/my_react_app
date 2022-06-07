@@ -1,4 +1,7 @@
 import { getAuth, signOut } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
 
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
@@ -20,6 +23,10 @@ const firebaseConfig = {
 const firebaseApp = firebase.initializeApp(firebaseConfig);
 const provider = new firebase.auth.GoogleAuthProvider();
 const firebaseAppAuth = getAuth(firebaseApp);
+
+
+const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
 
 export const auth = firebase.auth();
 export const signInWithGoogle = () => auth.signInWithPopup(provider);

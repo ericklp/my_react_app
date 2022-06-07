@@ -1,4 +1,7 @@
 import React, { useEffect, Fragment } from 'react';
+import { collection, getDocs, getDoc, doc, setDoc } from "firebase/firestore"; 
+
+
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -14,10 +17,12 @@ import MenuItem from '@mui/material/MenuItem';
 import BrokenImageIcon from '@mui/icons-material/BrokenImage';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemText from '@mui/material/ListItemText';
 
-import Stack from '@mui/material/Stack';
-
-import { auth, logout } from './firebase';
+import { auth, logout, db } from './firebase';
 import { useNavigate } from "react-router-dom";
 import { useAuthState } from "react-firebase-hooks/auth";
 
@@ -35,13 +40,17 @@ const getValuesForCard = () => {
     return buttonObject;
 };
 
-const ToogleGroupObject = () => {
-    const [selectedCard, setSelectedCard] = React.useState(1);
+const ToogleGroupObject = ({user}) => {
+    const [selectedCard, setSelectedCard] = React.useState();
 
-    const handleSelectedCard = (event, newCard) => {
-      console.log(`ERICK ${newCard}`);
-      setSelectedCard(newCard);
+    const handleSelectedCard = (event, card) => {
+      setSelectedCard(card);
+      updateFirestoreVote(card, user)
     };
+
+    const updateFirestoreVote = (vote, user) => {
+        setVotes(vote, user)
+    }
 
     return (    
         <ToggleButtonGroup
@@ -51,6 +60,7 @@ const ToogleGroupObject = () => {
         >
             {getValuesForCard().map((card, index) => (
                 <ToggleButton 
+                    key={index}
                     variant="outlined" 
                     style={{maxWidth: '130px',
                             maxHeight: '130px',
@@ -63,6 +73,84 @@ const ToogleGroupObject = () => {
         </ToggleButtonGroup>
     )
 }
+
+async function getRooms() {
+    const querySnapshot = await getDocs(collection(db, "rooms"));
+    querySnapshot.forEach((doc) => {
+        console.log(`${doc.id} => ${JSON.stringify(doc.data())}`);
+    });
+}
+
+async function getRoomPlayers() {
+    const docRef = doc(db, "rooms", "n69KKt9PD73br3iza1Gi");
+    const room = await getDoc(docRef);
+
+    if (room.exists()) {
+      return Promise.resolve(room.data().users);
+    } else {
+      return Promise.reject("No such room!")
+    }
+}
+
+const getCurrentUserIndex = (allPlayers, currentUser) => {
+    const userId = currentUser.uid
+    for (let i=0; i<allPlayers.length; i++) {
+        if (allPlayers[i].id === userId) {
+            return i;
+        }
+    }
+    console.log(`No user with id ${userId}`);  
+    return false;
+}
+
+async function setVotes(vote, user) {
+    const players = await getRoomPlayers()
+    players[getCurrentUserIndex(players, user)].vote = vote
+
+    console.log("updated player data:", players);
+    const room = doc(db, 'rooms', 'n69KKt9PD73br3iza1Gi');
+    setDoc(room, {"users": players});
+}
+
+async function addUserToRoom(user) {
+    const players = await getRoomPlayers()
+    if(!getCurrentUserIndex(players, user)) {
+        const room = doc(db, 'rooms', 'n69KKt9PD73br3iza1Gi');
+        players.push({  'id': user.uid,
+                        'name': user.displayName,
+                        'vote': ''});
+        setDoc(room, {"users": players});
+    }
+}
+
+const RoomPlayers = () => {
+    const [players, setPlayers] = React.useState([]);
+
+    const refresh = () => {
+        getRoomPlayers().then((data) => {
+            setPlayers(data);
+        });
+    }
+    useEffect(() => {
+        refresh();
+    }, []);
+
+    return (
+        <Fragment>
+        <List>
+            {players?.map((player, index) => (
+                <ListItem key={index}>
+                        <ListItemText 
+                            primary={player?.name} />
+                        <ListItemText 
+                            primary={`Vote: ${player?.vote}`} />
+                    </ListItem>))}
+        </List>
+        <Button variant="contained" onClick={refresh}>End Voting</Button>
+        </Fragment>
+    )
+}
+
 
 const ResponsiveAppBar = () => {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
@@ -92,7 +180,9 @@ const ResponsiveAppBar = () => {
     }
     if (!user) {
       navigate("/");
-    } 
+    } else {
+        addUserToRoom(user);
+    }
   }, [user, loading]);
 
   return (
@@ -220,7 +310,8 @@ const ResponsiveAppBar = () => {
         </AppBar>
 
         <div className="app">
-            <ToogleGroupObject />
+            <ToogleGroupObject user={user}/>
+            <RoomPlayers user={user}/>
         </div>
     </Fragment>
 
