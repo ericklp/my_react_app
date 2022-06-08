@@ -1,5 +1,5 @@
 import React, { useEffect, Fragment } from 'react';
-import { collection, getDocs, getDoc, doc, setDoc } from "firebase/firestore"; 
+import { collection, getDocs, getDoc, doc, setDoc, onSnapshot } from "firebase/firestore"; 
 
 
 import AppBar from '@mui/material/AppBar';
@@ -112,28 +112,42 @@ async function setVotes(vote, user) {
     setDoc(room, {"users": players});
 }
 
+async function clearAllVotes() {
+    const players = await getRoomPlayers()
+    for (let i=0; i<players.length; i++) {
+        players[i].vote = null;
+    };
+    console.log("cleared all votes:");
+    const room = doc(db, 'rooms', 'n69KKt9PD73br3iza1Gi');
+    setDoc(room, {"users": players});
+}
+
 async function addUserToRoom(user) {
     const players = await getRoomPlayers()
-    if(!getCurrentUserIndex(players, user)) {
+    if(getCurrentUserIndex(players, user) === false) {        
         const room = doc(db, 'rooms', 'n69KKt9PD73br3iza1Gi');
         players.push({  'id': user.uid,
                         'name': user.displayName,
                         'vote': ''});
         setDoc(room, {"users": players});
+        console.log(`added user [${user.displayName}] with id ${user.uid}`);
     }
 }
 
 const RoomPlayers = () => {
     const [players, setPlayers] = React.useState([]);
 
-    const refresh = () => {
-        getRoomPlayers().then((data) => {
+    const getFirestoreUpdates = () => {
+        const unsub = onSnapshot(doc(db, "rooms", "n69KKt9PD73br3iza1Gi"), (doc) => {
+            console.log("Current data: ", doc.data().users);
+            const data = doc.data().users;
             setPlayers(data);
         });
-    }
+    };
+
     useEffect(() => {
-        refresh();
-    }, []);
+        getFirestoreUpdates();
+    }, [players]);
 
     return (
         <Fragment>
@@ -146,7 +160,9 @@ const RoomPlayers = () => {
                             primary={`Vote: ${player?.vote}`} />
                     </ListItem>))}
         </List>
-        <Button variant="contained" onClick={refresh}>End Voting</Button>
+        <Button variant="contained" onClick={getFirestoreUpdates}>Reveal Voting</Button>
+        <Button variant="contained" onClick={clearAllVotes}>Clear Voting</Button>
+
         </Fragment>
     )
 }
