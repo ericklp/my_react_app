@@ -85,7 +85,7 @@ async function getRoomPlayers() {
     const docRef = doc(db, "rooms", "n69KKt9PD73br3iza1Gi");
     const room = await getDoc(docRef);
 
-    if (room.exists()) {
+    if (room.exists() && room.data().users) {
       return Promise.resolve(room.data().users);
     } else {
       return Promise.reject("No such room!")
@@ -109,7 +109,19 @@ async function setVotes(vote, user) {
 
     console.log("updated player data:", players);
     const room = doc(db, 'rooms', 'n69KKt9PD73br3iza1Gi');
-    setDoc(room, {"users": players});
+    setDoc(room, {"users": players}, { merge: true });
+}
+
+async function setFirestoreRevealVotes(revealVote) {
+    console.log("updating reveal votes to:", revealVote);
+    const room = doc(db, 'rooms', 'n69KKt9PD73br3iza1Gi');
+    setDoc(room, {revealVotes: revealVote}, { merge: true });
+}
+
+async function getFirestoreRevealVotes() {
+    const docRef = doc(db, 'rooms', 'n69KKt9PD73br3iza1Gi');
+    const room = await getDoc(docRef);
+    return room.revealVotes;
 }
 
 async function clearAllVotes() {
@@ -119,50 +131,88 @@ async function clearAllVotes() {
     };
     console.log("cleared all votes:");
     const room = doc(db, 'rooms', 'n69KKt9PD73br3iza1Gi');
-    setDoc(room, {"users": players});
+    setDoc(room, {"users": players}, { merge: true });
 }
 
 async function addUserToRoom(user) {
-    const players = await getRoomPlayers()
-    if(getCurrentUserIndex(players, user) === false) {        
-        const room = doc(db, 'rooms', 'n69KKt9PD73br3iza1Gi');
-        players.push({  'id': user.uid,
+    const room = doc(db, 'rooms', 'n69KKt9PD73br3iza1Gi');
+
+    getRoomPlayers().then((players) => {
+        if(getCurrentUserIndex(players, user) === false) {        
+            players.push({  'id': user.uid,
+                            'name': user.displayName,
+                            'vote': ''});
+            setDoc(room, {"users": players}, { merge: true });
+            console.log(`added user [${user.displayName}] with id ${user.uid}`);
+        }
+    }).catch(() => {
+        const player = [{'id': user.uid,
                         'name': user.displayName,
-                        'vote': ''});
-        setDoc(room, {"users": players});
+                        'vote': ''}];
+        setDoc(room, {"users": player}, { merge: true });
         console.log(`added user [${user.displayName}] with id ${user.uid}`);
-    }
+    })
 }
 
 const RoomPlayers = () => {
     const [players, setPlayers] = React.useState([]);
+    const [revealVotes, setRevealVotes] = React.useState(false);
 
     const getFirestoreUpdates = () => {
         const unsub = onSnapshot(doc(db, "rooms", "n69KKt9PD73br3iza1Gi"), (doc) => {
-            console.log("Current data: ", doc.data().users);
-            const data = doc.data().users;
-            setPlayers(data);
+            const source = doc.metadata.hasPendingWrites ? "Local" : "Server";
+            console.log(source);
+            console.log("Current data: ", doc.data());
+
+            setPlayers(doc.data().users);
+            if(doc.data().revealVotes)
+                setRevealVotes(doc.data().revealVotes);
         });
     };
 
     useEffect(() => {
         getFirestoreUpdates();
-    }, [players]);
+    }, []);
+
+    const getVoteText = (vote) => {
+        if (revealVotes) {
+            if(vote===null) {
+                return `<user did not vote>`;
+            }
+            return `Voted: ${vote}`;
+        } 
+        if(vote) {
+            return 'Already voted';
+        }
+        return 'user has not voted yet';
+    }
+
+    const getVotes = () => {
+        console.log(`revealVotes: ${revealVotes}`);
+        const reveal = revealVotes
+        setRevealVotes(!reveal);
+        setFirestoreRevealVotes(!reveal);
+    }
+
+    const clearVoting = () => {
+        clearAllVotes();
+        setFirestoreRevealVotes(false);
+    }
 
     return (
         <Fragment>
-        <List>
-            {players?.map((player, index) => (
+            <List>
+                {players?.map((player, index) => (
                 <ListItem key={index}>
                         <ListItemText 
                             primary={player?.name} />
                         <ListItemText 
-                            primary={`Vote: ${player?.vote}`} />
-                    </ListItem>))}
-        </List>
-        <Button variant="contained" onClick={getFirestoreUpdates}>Reveal Voting</Button>
-        <Button variant="contained" onClick={clearAllVotes}>Clear Voting</Button>
-
+                            primary={getVoteText(player?.vote)} />
+                    </ListItem>
+                ))}
+            </List>
+            <Button variant="contained" onClick={getVotes}>{revealVotes ? 'Restart voting' : 'Reveal Votes'}</Button>
+            <Button variant="outlined" onClick={clearVoting}>Clear Voting</Button>
         </Fragment>
     )
 }
