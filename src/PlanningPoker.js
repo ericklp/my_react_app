@@ -165,8 +165,7 @@ const RoomPlayers = () => {
             console.log("Current data: ", doc.data());
 
             setPlayers(doc.data().users);
-            if(doc.data().revealVotes)
-                setRevealVotes(doc.data().revealVotes);
+            setRevealVotes(doc.data().revealVotes);
         });
     };
 
@@ -196,7 +195,7 @@ const RoomPlayers = () => {
 
     const clearVoting = () => {
         clearAllVotes();
-        setFirestoreRevealVotes(false);
+        getVotes();
     }
 
     return (
@@ -242,6 +241,7 @@ const ResponsiveAppBar = () => {
 
   useEffect(() => {
     if (loading) {
+      clearAllVotes();
       return;
     }
     if (!user) {
